@@ -1,15 +1,23 @@
-public class Main{
-    public static void main(String[] args) {
-        //Task1
-    Person person=new Person();
-    person.name="Akmagambetova Aliya";
-    person.age=17;
-        System.out.println("From task 1: Hello, my name is "+person.name+", I am "+person.age+" years old");
-        //Task 2
-        person.printDetails(person.name,person.age);
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-        //Task 4
-        Person2 person2=new Person2("Yerkezhan",3);
-        person2.printDetails(person2.GetName(),person2.GetAge());
+public class Main {
+    public static void main(String[] args) {
+        List<Person> people = new ArrayList<>();
+
+        people.add(new Student("Ringo", "Starr", 2.66));
+        people.add(new Employee("John", "Lennon", "Musician", 27045.78));
+        people.add(new Student("Paul", "McCartney", 3.68));
+        people.add(new Employee("George", "Harrison", "Guitarist", 50000.00));
+
+        Collections.sort(people);
+        printData(people);
+    }
+
+    public static void printData(Iterable<Person> people) {
+        for (Person person : people) {
+            System.out.println(person + " earns " + String.format("%.2f", person.getPaymentAmount()) + " tenge");
+        }
     }
 }

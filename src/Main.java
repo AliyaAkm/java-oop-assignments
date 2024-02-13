@@ -1,23 +1,77 @@
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+    import java.io.BufferedReader;
+    import java.io.InputStreamReader;
+    import java.time.LocalDateTime;
 
-public class Main {
-    public static void main(String[] args) {
-        List<Person> people = new ArrayList<>();
+    public class Main {
+        public static void main(String[] args) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
-        people.add(new Student("Ringo", "Starr", 2.66));
-        people.add(new Employee("John", "Lennon", "Musician", 27045.78));
-        people.add(new Student("Paul", "McCartney", 3.68));
-        people.add(new Employee("George", "Harrison", "Guitarist", 50000.00));
+            System.out.println("Welcome to the Console Chat App!");
+            ChatHistoryModel chatModel = new ChatHistoryModel();
 
-        Collections.sort(people);
-        printData(people);
-    }
+            System.out.println("Please enter your username:");
+            String username = "";
+            try {
+                username = reader.readLine();
+            } catch (Exception e) {
+                System.out.println("An error occurred: " + e.getMessage());
+                return;
+            }
+            System.out.println("Choose a service:");
+            System.out.println("1: Get a random joke");
+            System.out.println("2: Get your horoscope");
+            System.out.println("3: Get your chat history");
+            System.out.println("4: Delete your chat history");
+            System.out.println("5: Update your chat history");
+            System.out.println("Enter the number of the service you want to use:");
 
-    public static void printData(Iterable<Person> people) {
-        for (Person person : people) {
-            System.out.println(person + " earns " + String.format("%.2f", person.getPaymentAmount()) + " tenge");
+            try {
+                String userInput = reader.readLine();
+
+                switch (userInput) {
+                    case "1":
+                        try {
+                            String apiUrl = "https://official-joke-api.appspot.com/random_joke";
+                            String jokeJson = JokeFetcher.getJokeFromApi(apiUrl);
+                            String joke = JokeFetcher.parseJoke(jokeJson);
+                            System.out.println("Joke: " + joke);
+                            String userInputForDb ="User selected joke service";
+                            String serverResponseForDb = joke;
+                            chatModel.saveChat(username, userInputForDb, serverResponseForDb, LocalDateTime.now());
+                        } catch (Exception e) {
+                            System.out.println("Error fetching joke: " + e.getMessage());
+                        }
+                        break;
+                    case "2":
+                        System.out.println("Enter your zodiac sign:");
+                        String sign = reader.readLine().trim().toLowerCase();
+                        String horoscope = HoroscopeFetcher.getHoroscope(sign);
+                        System.out.println("Horoscope for " + sign + ": " + horoscope);
+                        String userInputForDb = username + " requested horoscope for " + sign;
+                        String serverResponseForDb = horoscope;
+                        LocalDateTime timestamp = LocalDateTime.now();
+                        chatModel.saveChat(username, userInputForDb, serverResponseForDb, timestamp);
+                        break;
+                    case "3":
+                        chatModel.readChatByUsername(username);
+                        break;
+                    case "4":
+                        System.out.println("WARNING: This will delete all chats for a username.");
+                        chatModel.deleteChatByUsername(username);
+                        System.out.println("All chats for " + username + " have been deleted.");
+                        break;
+                    case "5":
+                        System.out.println("Enter new username:");
+                        String newUsername = reader.readLine().trim();
+                        chatModel.updateUsernameInChat(username, newUsername);
+                        System.out.println("All chats for " + username + " have been updated to " + newUsername + ".");
+                        break;
+
+                    default:
+                        System.out.println("Service not recognized. Please try again.");
+                }
+            } catch (Exception e) {
+                System.out.println("An error occurred: " + e.getMessage());
+            }
         }
     }
-}

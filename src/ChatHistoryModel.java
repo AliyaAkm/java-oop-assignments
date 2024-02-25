@@ -1,11 +1,25 @@
 import java.sql.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ChatHistoryModel {
+    private List<ChatObserver> observers = new ArrayList<>();
     private static final String url = "jdbc:postgresql://localhost:5432/postgres";
     private static final String user = "postgres";
     private static final String password = "23111974";
 
+    public void addObserver(ChatObserver observer) {
+        observers.add(observer);
+    }
+    public void removeObserver(ChatObserver observer) {
+        observers.remove(observer);
+    }
+    private void notifyObservers(String action, String username, String details) {
+        for (ChatObserver observer : observers) {
+            observer.update(action, username, details);
+        }
+    }
     public void saveChat(String username, String userInput, String serverResponse, LocalDateTime timestamp) {
         String SQL = "INSERT INTO chat_history(username, user_input, server_response, timestamp) VALUES(?, ?, ?, ?)";
 
@@ -21,6 +35,7 @@ public class ChatHistoryModel {
         } catch (SQLException ex) {
             System.out.println(ex.getMessage());
         }
+        notifyObservers("Chat Saved", username, "User Input: " + userInput + ", Server Response: " + serverResponse);
     }
     public void deleteChatByUsername(String username) {
         String SQL = "DELETE FROM chat_history WHERE username = ?";
@@ -34,6 +49,7 @@ public class ChatHistoryModel {
         } catch (SQLException ex) {
             System.out.println(ex.getMessage());
         }
+        notifyObservers("Chat Deleted", username, "");
     }
     public void updateUsernameInChat(String oldUsername, String newUsername) {
         String SQL = "UPDATE chat_history SET username = ? WHERE username = ?";
@@ -48,6 +64,7 @@ public class ChatHistoryModel {
         } catch (SQLException ex) {
             System.out.println(ex.getMessage());
         }
+        notifyObservers("Username Updated", newUsername, "Old Username: " + oldUsername);
     }
 
     public void readChatByUsername(String username) {

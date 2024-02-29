@@ -5,11 +5,9 @@ import java.time.LocalDateTime;
 public class Main {
     public static void main(String[] args) {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-
         System.out.println("Welcome to the Console Chat App!");
         ChatHistoryModel chatModel = new ChatHistoryModel();
         ChatObserver detailedLogger = new DetailedChatLogger();
-       //main part
         chatModel.addObserver(detailedLogger);
 
         System.out.println("Please enter your username:");
@@ -38,27 +36,10 @@ public class Main {
 
                 switch (userInput) {
                     case "1":
-                        try {
-                            String apiUrl = "https://official-joke-api.appspot.com/random_joke";
-                            String jokeJson = JokeFetcher.getJokeFromApi(apiUrl);
-                            String joke = JokeFetcher.parseJoke(jokeJson);
-                            System.out.println("Joke: " + joke);
-                            String userInputForDb = "User selected joke service";
-                            String serverResponseForDb = joke;
-                            chatModel.saveChat(username, userInputForDb, serverResponseForDb, LocalDateTime.now());
-                        } catch (Exception e) {
-                            System.out.println("Error fetching joke: " + e.getMessage());
-                        }
+                        executeService(new JokeService(), username, chatModel);
                         break;
                     case "2":
-                        System.out.println("Enter your zodiac sign:");
-                        String sign = reader.readLine().trim().toLowerCase();
-                        String horoscope = HoroscopeFetcher.getHoroscope(sign);
-                        System.out.println("Horoscope for " + sign + ": " + horoscope);
-                        String userInputForDb = "user requested horoscope for " + sign;
-                        String serverResponseForDb = horoscope;
-                        LocalDateTime timestamp = LocalDateTime.now();
-                        chatModel.saveChat(username, userInputForDb, serverResponseForDb, timestamp);
+                        executeService(new HoroscopeService(), username, chatModel);
                         break;
                     case "3":
                         chatModel.readChatByUsername(username);
@@ -73,6 +54,7 @@ public class Main {
                         String newUsername = reader.readLine().trim();
                         chatModel.updateUsernameInChat(username, newUsername);
                         System.out.println("All chats for " + username + " have been updated to " + newUsername + ".");
+                        username = newUsername; // Update the username
                         break;
                     case "6":
                         System.out.println("Exiting the application.");
@@ -85,5 +67,9 @@ public class Main {
                 System.out.println("An error occurred: " + e.getMessage());
             }
         }
+    }
+
+    private static void executeService(Service service, String username, ChatHistoryModel chatModel) throws Exception {
+        service.execute(username, chatModel);
     }
 }
